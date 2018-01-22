@@ -12,7 +12,7 @@ int frame = 1;
 float extrusion = 0;
 float currentZ = 10;
 float zInc = 0.5;
-float initZ = 0.5;
+float initZ = 1;
 float ExtCoeff = 100;
 int layerCounter = 0;
 int maxLayers = 10;
@@ -31,6 +31,7 @@ PVector nextPosition;
 PVector oldPosition = new PVector(50, 50);
 
 //3DPrinter ultimaker = new 3DPrinter();
+pixelFloat memoire = new pixelFloat(100,100);
 
 String[] initString = {
   "G28 \n", 
@@ -58,7 +59,7 @@ PVector[] noise2D;
 
 float accelerationLevel = 0.05;
 float turbulenceLevel = 0.01;
-float hesitationLevel = 0.005;
+float hesitationLevel = 0.02;
 
 //
 
@@ -85,11 +86,11 @@ void setup() {
 
   agent = new Agent(width/2, height/2);
   noiseDetail(10);
-  noise2D = new PVector[width*height];
+  noise2D = new PVector[(width+1)*(height+1)];
   float xoff = 0, yoff = 0;
-  for (int y = 0; y < height; y ++) {
+  for (int y = 0; y <= height; y ++) {
     xoff = 0;
-    for (int x = 0; x < width; x ++) {   
+    for (int x = 0; x <= width; x ++) {   
       float noiseAngle = map(noise(xoff, yoff), 0, 1, -TWO_PI, TWO_PI);
       PVector externalForce = new PVector(cos(noiseAngle), sin(noiseAngle));
       externalForce.setMag(1);
@@ -205,27 +206,30 @@ void moving() {
   float dx = nextPosition.x - oldPosition.x;
   float dy = nextPosition.y - oldPosition.y;
   
-  float extRate = 1.0;
+  float extRate = 1;
   print("dx : " + dx);
   println("dy : " + dy);
-  /*
+  
   float xmin = 25, xmax=75, ymin = 25, ymax=75;
   boolean interx = oldPosition.x < xmax && oldPosition.x > xmin;
   boolean intery = oldPosition.y < ymax && oldPosition.y > ymin;
   if(interx && intery) {
     extRate = 0.0;
   }
-  */
-  GCodeLine = "G0 F100 X"+ dx +" Y"+ dy +" Z0.00"+" E"+ extRate +" \n";
+  
+  GCodeLine = "G0 F500 X"+ dx +" Y"+ dy +" Z0.00"+" E"+ extRate +" \n";
   myPort.write(GCodeLine);
   myPort.clear();
   oldPosition.x =  nextPosition.x;
   oldPosition.y = nextPosition.y;
-  
+  memoire.addValue(1,oldPosition);
+  //memoire.printTab();
   println("drawing stage : " + drawingStages);
+  /*
   if (frameCount % 100*frameRate == 0) {
     drawingStages = 4;
   }
+  */
 }
 
 void sendTemp() {

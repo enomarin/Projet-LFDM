@@ -63,10 +63,10 @@ class Agent {
   void move() {
     comportement();
     hesitation();
-    forceDuMilieu();
+    //forceDuMilieu();
     //println(forces.mag());
     //forces.limit(0.5);
-    forces.setMag(1);
+    forces.setMag(5);
     // Application du vecteur forces à la position --> déplacement du point
     position.add(forces);
   }
@@ -103,7 +103,7 @@ class Agent {
   void forceDuMilieu() {
     boolean pos0 = position.x > 0 || position.y > 0;
     boolean pos1 = position.x < width || position.y < width;
-    if (pos0|| pos1) {
+    if (pos0 || pos1) {
       otherForces.add(noise2D[int(position.y)*width+int(position.x)]);
       otherForces.limit(turbulenceLevel);
       // Application de cette force au vecteur forces

@@ -38,8 +38,8 @@ String[] initString = {
   "G0 F3000 X"+ 120 + " Y" + 120 + " Z"+ initZ +" \n", 
   "G91 \n", // Relative positioning
   "M82 \n", // Absolute Extrude Rate
-  //"M109 F S210 B220 \n", // E TEMP
-  //"M155 S4 \n", 
+  "M109 F S210 B220 \n", // E TEMP
+  "M155 S4 \n", 
   //"M190 S60 \n", // B TEMP
   "M104 F S210 B220 \n"
 };
@@ -217,7 +217,7 @@ void moving() {
   }
   */
   GCodeLine = "G0 F100 X"+ dx +" Y"+ dy +" Z0.00"+" E"+ extRate +" \n";
-  output.println(GCodeLine);
+  myPort.write(GCodeLine);
   myPort.clear();
   oldPosition.x =  nextPosition.x;
   oldPosition.y = nextPosition.y;
@@ -267,7 +267,7 @@ void serialEvent(Serial myPort) {
   if (received != null) {
     print(received);
     if (received.contains("ok")) {
-      print("contacted !");
+      println("contacted !");
       if (firstContact) {
         initialization = true;
         firstContact = false;

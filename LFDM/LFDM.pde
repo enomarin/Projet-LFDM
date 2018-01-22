@@ -9,6 +9,7 @@ String[] startCode;
 
 int frame = 1;
 
+// PARAMETERS OF PRINTING
 float extrusion = 0;
 float currentZ = 10;
 float zInc = 0.5;
@@ -17,8 +18,8 @@ float ExtCoeff = 100;
 int layerCounter = 0;
 int maxLayers = 10;
 
-int initStage = 0;
-int drawingStages = 0; 
+
+
 // 0 : initialization | 1 : moving | 2 : send temp | 3 : change temp
 boolean firstContact = true;
 boolean initialization = false;
@@ -27,8 +28,12 @@ boolean drawing = true;
 boolean stop = false;
 String received="";
 
+// DECLARATION OF VARIABLES
+int initStage = 0;
+int drawingStages = 0; 
 PVector nextPosition;
-PVector oldPosition = new PVector(50, 50);
+PVector oldPosition = new PVector(50, 50, initZ);
+pixelFloat memoire = new pixelFloat(100, 100);
 
 //3DPrinter ultimaker = new 3DPrinter();
 
@@ -191,37 +196,49 @@ void moving() {
   agent.update();
   float x1 = agent.position.x;
   float y1 = agent.position.y;
-  nextPosition = new PVector(x1, y1);
-
-  float distance = nextPosition.dist(oldPosition);
-  distance = round(distance);
-  println("old : " + oldPosition.x + " " + oldPosition.y);
-  println("next : " + nextPosition.x + " " + nextPosition.y);
-  //println("distance : " + distance);
   
+  // SHOW AGENT LOCATION
   fill(255);
   ellipse(x1, y1, 10, 10);
-  println("moving "+ frameCount);
-  float dx = nextPosition.x - oldPosition.x;
-  float dy = nextPosition.y - oldPosition.y;
   
+  nextPosition = new PVector(x1, y1);
+  
+  float distance = nextPosition.dist(oldPosition);
+  distance = round(distance);
+  //println("distance : " + distance);
+  
+  int value = memoire.getValue(nextPosition);
+  nextPosition.z = value * zInc;
+
   float extRate = 1.0;
-  print("dx : " + dx);
-  println("dy : " + dy);
-  /*
   float xmin = 25, xmax=75, ymin = 25, ymax=75;
   boolean interx = oldPosition.x < xmax && oldPosition.x > xmin;
   boolean intery = oldPosition.y < ymax && oldPosition.y > ymin;
-  if(interx && intery) {
+  if (interx && intery) {
     extRate = 0.0;
   }
-  */
-  GCodeLine = "G0 F100 X"+ dx +" Y"+ dy +" Z0.00"+" E"+ extRate +" \n";
+  float dx = nextPosition.x - oldPosition.x;
+  float dy = nextPosition.y - oldPosition.y;
+  float dz = nextPosition.z - oldPosition.z;
+  
+  // PRINTING STATUS
+  println("moving "+ frameCount);
+  println("old : " + oldPosition.x + " " + oldPosition.y);
+  println("next : " + nextPosition.x + " " + nextPosition.y);
+  println("z : " + nextPosition.z);
+  print("dx : " + dx);
+  print("dy : " + dy);
+  println("dz : " + dz);
+
+  GCodeLine = "G0 F100 X"+ dx +" Y"+ dy +" Z"+ dz +" E"+ extRate +" \n";
   myPort.write(GCodeLine);
   myPort.clear();
-  oldPosition.x =  nextPosition.x;
-  oldPosition.y = nextPosition.y;
-  
+
+  memoire.addValue(1, oldPosition);
+  memoire.printTab();
+
+  oldPosition.equals(nextPosition);
+
   println("drawing stage : " + drawingStages);
   if (frameCount % 100*frameRate == 0) {
     drawingStages = 4;

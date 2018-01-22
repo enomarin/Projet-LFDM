@@ -9,7 +9,4 @@ class CNCPrinter {
   
   CNCPrinter(float _dimensionX,float _dimensionY) {
   }
-  void makePoint(PVector startPoint, PVector stopPoint) {
-    
-  }
 }

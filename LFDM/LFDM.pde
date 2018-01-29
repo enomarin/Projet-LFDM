@@ -9,17 +9,16 @@ String[] startCode;
 
 int frame = 1;
 
-// PARAMETERS OF PRINTING
 float extrusion = 0;
 float currentZ = 10;
 float zInc = 0.5;
-float initZ = 0.5;
+float initZ = 1;
 float ExtCoeff = 100;
 int layerCounter = 0;
 int maxLayers = 10;
 
-
-
+int initStage = 0;
+int drawingStages = 0; 
 // 0 : initialization | 1 : moving | 2 : send temp | 3 : change temp
 boolean firstContact = true;
 boolean initialization = false;
@@ -28,14 +27,11 @@ boolean drawing = true;
 boolean stop = false;
 String received="";
 
-// DECLARATION OF VARIABLES
-int initStage = 0;
-int drawingStages = 0; 
 PVector nextPosition;
-PVector oldPosition = new PVector(50, 50, initZ);
-pixelFloat memoire = new pixelFloat(100, 100);
+PVector oldPosition = new PVector(50, 50);
 
 //3DPrinter ultimaker = new 3DPrinter();
+pixelFloat memoire = new pixelFloat(100,100);
 
 String[] initString = {
   "G28 \n", 
@@ -63,7 +59,7 @@ PVector[] noise2D;
 
 float accelerationLevel = 0.05;
 float turbulenceLevel = 0.01;
-float hesitationLevel = 0.005;
+float hesitationLevel = 0.02;
 
 //
 
@@ -90,11 +86,11 @@ void setup() {
 
   agent = new Agent(width/2, height/2);
   noiseDetail(10);
-  noise2D = new PVector[width*height];
+  noise2D = new PVector[(width+1)*(height+1)];
   float xoff = 0, yoff = 0;
-  for (int y = 0; y < height; y ++) {
+  for (int y = 0; y <= height; y ++) {
     xoff = 0;
-    for (int x = 0; x < width; x ++) {   
+    for (int x = 0; x <= width; x ++) {   
       float noiseAngle = map(noise(xoff, yoff), 0, 1, -TWO_PI, TWO_PI);
       PVector externalForce = new PVector(cos(noiseAngle), sin(noiseAngle));
       externalForce.setMag(1);
@@ -196,53 +192,46 @@ void moving() {
   agent.update();
   float x1 = agent.position.x;
   float y1 = agent.position.y;
+  nextPosition = new PVector(x1, y1, 0);
   
-  // SHOW AGENT LOCATION
-  fill(255);
-  ellipse(x1, y1, 10, 10);
-  
-  nextPosition = new PVector(x1, y1);
+  nextPosition.z = memoire.getValue(nextPosition);
   
   float distance = nextPosition.dist(oldPosition);
   distance = round(distance);
+  println("old : " + oldPosition.x + " " + oldPosition.y);
+  println("next : " + nextPosition.x + " " + nextPosition.y);
   //println("distance : " + distance);
   
-  int value = memoire.getValue(nextPosition);
-  nextPosition.z = value * zInc;
-
-  float extRate = 1.0;
-  float xmin = 25, xmax=75, ymin = 25, ymax=75;
-  boolean interx = oldPosition.x < xmax && oldPosition.x > xmin;
-  boolean intery = oldPosition.y < ymax && oldPosition.y > ymin;
-  if (interx && intery) {
-    extRate = 0.0;
-  }
+  fill(255);
+  ellipse(x1, y1, 10, 10);
+  println("moving "+ frameCount);
   float dx = nextPosition.x - oldPosition.x;
   float dy = nextPosition.y - oldPosition.y;
   float dz = nextPosition.z - oldPosition.z;
+  float extRate = 0.2;
+  //print("dx : " + dx);
+  //print(" dy : " + dy);
+  println(" dz : " + dz);
+  float xmin = 25, xmax=75, ymin = 25, ymax=75;
+  boolean interx = oldPosition.x < xmax && oldPosition.x > xmin;
+  boolean intery = oldPosition.y < ymax && oldPosition.y > ymin;
+  if(interx && intery) {
+    extRate = 0.0;
+  }
   
-  // PRINTING STATUS
-  println("moving "+ frameCount);
-  println("old : " + oldPosition.x + " " + oldPosition.y);
-  println("next : " + nextPosition.x + " " + nextPosition.y);
-  println("z : " + nextPosition.z);
-  print("dx : " + dx);
-  print("dy : " + dy);
-  println("dz : " + dz);
-
-  GCodeLine = "G0 F100 X"+ dx +" Y"+ dy +" Z"+ dz +" E"+ extRate +" \n";
+  GCodeLine = "G0 F500 X"+ dx +" Y"+ dy +" Z"+"0.0"+" E"+ extRate +" \n";
   myPort.write(GCodeLine);
   myPort.clear();
-
-  memoire.addValue(1, oldPosition);
-  memoire.printTab();
-
-  oldPosition.equals(nextPosition);
-
-  println("drawing stage : " + drawingStages);
+  oldPosition.x =  nextPosition.x;
+  oldPosition.y = nextPosition.y;
+  memoire.addValue(1,oldPosition);
+  //memoire.printTab();
+ // println("drawing stage : " + drawingStages);
+  /*
   if (frameCount % 100*frameRate == 0) {
     drawingStages = 4;
   }
+  */
 }
 
 void sendTemp() {
@@ -282,7 +271,7 @@ void serialEvent(Serial myPort) {
   //received = "ok\r\n";
 
   if (received != null) {
-    print(received);
+   // print(received);
     if (received.contains("ok")) {
       println("contacted !");
       if (firstContact) {

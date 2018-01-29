@@ -1,18 +1,23 @@
 class pixelFloat{
   
-  int[][] tab;
+  float[][] tab;
   
   pixelFloat(int _xSize, int _ySize) {
-    tab = new int[_xSize+1][_ySize+1];
+    tab = new float[_xSize+1][_ySize+1];
+    for(int y = 0; y < tab[0].length; y++){
+      for(int x = 0; x < tab.length; x++){
+        tab[x][y] = 0.5;
+      }
+    }
   }
   
-  void addValue(int value, PVector vector) {
+  void addValue(float value, PVector vector) {
     int x = floor(vector.x);
     int y = floor(vector.y);
-    tab[x][y] = tab[x][y] + value;
+    tab[x][y] = value;
   }
   
-  int getValue(PVector vector) {
+  float getValue(PVector vector) {
     int x = floor(vector.x);
     int y = floor(vector.y);
     return tab[x][y];

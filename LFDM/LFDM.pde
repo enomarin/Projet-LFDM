@@ -206,7 +206,7 @@ void moving() {
   float dx = nextPosition.x - oldPosition.x;
   float dy = nextPosition.y - oldPosition.y;
   
-  float extRate = 1;
+  float extRate = 0.2;
   print("dx : " + dx);
   println("dy : " + dy);
   

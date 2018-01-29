@@ -66,7 +66,7 @@ class Agent {
     //forceDuMilieu();
     //println(forces.mag());
     //forces.limit(0.5);
-    forces.setMag(5);
+    forces.setMag(1);
     // Application du vecteur forces à la position --> déplacement du point
     position.add(forces);
   }
